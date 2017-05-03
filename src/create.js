@@ -10,6 +10,7 @@ overrides.clearModuleRequireCache()
 var Blockchain = require('blockchain-wallet-client-prebuilt')
 var Address = require('blockchain-wallet-client-prebuilt/src/address')
 var WalletNetwork = require('blockchain-wallet-client-prebuilt/src/wallet-network')
+var Wallet = require('blockchain-wallet-client-prebuilt/src/blockchain-wallet')
 var HDWallet = require('blockchain-wallet-client-prebuilt/src/hd-wallet')
 
 overrides.substituteWithCryptoRNG(Blockchain.RNG)
@@ -22,6 +23,7 @@ var NOT_HD_WARNING = 'Created non-HD wallet, for privacy and security, it is rec
  *    email: String (optional)
  *    firstLabel: String (optional)
  *    privateKey: String (optional)
+ *    secondPassword: String (optional)
  *    hd: Boolean (default: false)
  *    rootUrl: String (default: 'https://blockchain.info/')
  *    apiRootUrl: String (default: 'https://api.blockchain.info/')
@@ -37,6 +39,7 @@ function createWallet (password, options) {
   var email = options.email
   var firstLabel = options.firstLabel
   var privateKey = options.privateKey
+  var secondPassword = options.secondPassword
   var isHdWallet = Boolean(options.hd)
 
   Blockchain.API.API_CODE = options.api_code
@@ -89,7 +92,12 @@ function createWallet (password, options) {
       walletJSON.keys = [firstAddress.toJSON()]
     }
 
-    return walletJSON
+    if (secondPassword != null) {
+      var wallet = new Wallet(walletJSON).encrypt(secondPassword)
+      return wallet.toJSON()
+    } else {
+      return walletJSON
+    }
   }
 
   // Encrypt and push new wallet to server
