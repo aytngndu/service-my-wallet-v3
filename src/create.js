@@ -2,6 +2,7 @@
 
 var crypto = require('crypto')
 var BIP39 = require('bip39')
+var winston = require('winston')
 var overrides = require('./overrides')
 
 overrides.clearModuleRequireCache()
@@ -14,12 +15,14 @@ var HDWallet = require('blockchain-wallet-client-prebuilt/src/hd-wallet')
 overrides.substituteWithCryptoRNG(Blockchain.RNG)
 overrides.disableSyncWallet(Blockchain.MyWallet)
 
+var NOT_HD_WARNING = 'Created non-HD wallet, for privacy and security, it is recommended that new wallets are created with "hd=true".'
+
 /**
  *  options {
  *    email: String (optional)
  *    firstLabel: String (optional)
  *    privateKey: String (optional)
- *    isHdWallet: Boolean (default: false)
+ *    hd: Boolean (default: false)
  *    rootUrl: String (default: 'https://blockchain.info/')
  *    apiRootUrl: String (default: 'https://api.blockchain.info/')
  *  }
@@ -34,7 +37,7 @@ function createWallet (password, options) {
   var email = options.email
   var firstLabel = options.firstLabel
   var privateKey = options.privateKey
-  var isHdWallet = Boolean(options.isHdWallet)
+  var isHdWallet = Boolean(options.hd)
 
   Blockchain.API.API_CODE = options.api_code
   Blockchain.API.ROOT_URL = options.rootUrl || 'https://blockchain.info/'
@@ -81,6 +84,7 @@ function createWallet (password, options) {
       var hd = createHdWallet()
       walletJSON.hd_wallets = [hd.toJSON()]
     } else {
+      winston.warn(NOT_HD_WARNING)
       var firstAddress = createLegacyAddress(privateKey, firstLabel)
       walletJSON.keys = [firstAddress.toJSON()]
     }
@@ -117,7 +121,7 @@ function createWallet (password, options) {
         return { guid: wallet.guid, address: account.xpub, label: account.label }
       } else {
         var firstKey = wallet.keys[0]
-        return { guid: wallet.guid, address: firstKey.addr, label: firstKey.label }
+        return { guid: wallet.guid, address: firstKey.addr, label: firstKey.label, warning: NOT_HD_WARNING }
       }
     })
   }
