@@ -65,48 +65,56 @@ merchantAPI.all(
 // Routing: Legacy Wallet API
 legacyAPI.all(
   '/balance',
+  deprecate(),
   required(['password']),
   callApi('getBalance')
 )
 
 legacyAPI.all(
   '/list',
+  deprecate(),
   required(['password']),
   callApi('listAddresses')
 )
 
 legacyAPI.all(
   '/address_balance',
+  deprecate(),
   required(['address', 'password']),
   callApi('getAddressBalance')
 )
 
 legacyAPI.all(
   '/sendmany',
+  deprecate(),
   required(['recipients', 'password']),
   callApi('sendMany')
 )
 
 legacyAPI.all(
   '/payment',
+  deprecate(),
   required(['to', 'amount', 'password']),
   callApi('makePayment')
 )
 
 legacyAPI.all(
   '/new_address',
+  deprecate(),
   required(['password']),
   callApi('generateAddress')
 )
 
 legacyAPI.all(
   '/archive_address',
+  deprecate(),
   required(['address', 'password']),
   callApi('archiveAddress')
 )
 
 legacyAPI.all(
   '/unarchive_address',
+  deprecate(),
   required(['address', 'password']),
   callApi('unarchiveAddress')
 )
@@ -183,6 +191,18 @@ function callApi (method) {
   }
 }
 
+function deprecate () {
+  var warning = (
+    'This endpoint has been deprecated, ' +
+    'for the best safety and security, use the HD API instead: ' +
+    'https://github.com/blockchain/service-my-wallet-v3#enable-hd-functionality'
+  )
+  return function (req, res, next) {
+    res.deprecationWarning = warning
+    next()
+  }
+}
+
 function required (props) {
   props = props instanceof Array ? props : [props]
   return function (req, res, next) {
@@ -223,25 +243,30 @@ function Identity (a) { return a }
 function MaybeString (s) { return s ? String(s) : undefined }
 
 function handleResponse (apiAction, res, errCode) {
+  var addWarning = function (data) {
+    var warning = res.deprecationWarning
+    return warning ? Object.assign({}, data, { warning: warning }) : data
+  }
+
   apiAction
-    .then(function (data) { res.status(200).json(data) })
+    .then(function (data) { res.status(200).json(addWarning(data)) })
     .catch(function (e) {
       winston.error(e)
       var err = ecodes[e] || ecodes['ERR_UNEXPECT']
       if (stringContains(e, 'Insufficient funds. Value Needed')) {
         var rgx = /Insufficient funds. Value Needed ([^]+)BTC. Available amount ([^]+)BTC/
         var errData = e.match(rgx)
-        return res.status(400).json({
+        return res.status(400).json(addWarning({
           error: 'Insufficient funds',
           needed: errData ? parseFloat(errData[1]) : undefined,
           available: errData ? parseFloat(errData[2]) : undefined
-        })
+        }))
       }
       if (
         stringContains(e, 'Missing query parameter') ||
         stringContains(e, 'Error Decrypting Wallet')
       ) err = e
-      res.status(errCode || 500).json({ error: err })
+      res.status(errCode || 500).json(addWarning({ error: err }))
     })
 }
 
