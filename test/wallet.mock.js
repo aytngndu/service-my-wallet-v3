@@ -30,8 +30,12 @@ var wallet = {
   activeKeys: [key],
   hdwallet: hdwallet,
   key: function () { return key; },
-  newLegacyAddress: function () { return newKey; },
-  newAccount: function () { return newAccount; }
+  newLegacyAddress: function (label, pass, success, fail) {
+    setTimeout(success, 100);
+    return newKey;
+  },
+  newAccount: function () { return newAccount; },
+  waitForSync: function (v) { return Promise.resolve(v) }
 };
 
 module.exports = wallet;

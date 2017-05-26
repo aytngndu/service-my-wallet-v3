@@ -1,6 +1,6 @@
 {
   "name": "blockchain-wallet-service",
-  "version": "0.20.1",
+  "version": "0.25.1",
   "description": "Blockchain.info wallet api service",
   "main": "index.js",
   "repository": {
@@ -20,21 +20,28 @@
   "scripts": {
     "start": "node_modules/nodemon/bin/nodemon.js scripts/start.js",
     "start:debug": "node-debug scripts/start.js",
-    "test": "node_modules/mocha/bin/mocha test/*.spec.js",
-    "test:int": "node_modules/mocha/bin/mocha test/integration.js"
+    "test": "node_modules/mocha/bin/mocha test/*.spec.js --timeout 5000",
+    "test:int": "node_modules/mocha/bin/mocha test/integration.js --timeout 5000",
+    "lint": "node_modules/.bin/standard src/*.js"
   },
   "author": "Justin Tormey <justin@blockchain.info>",
   "dependencies": {
     "basic-auth": "~1.0.3",
+    "bip39": "~2.3.1",
     "bitcoinjs-lib": "~2.2.0",
-    "blockchain-wallet-client-prebuilt": "3.14.*",
+    "blockchain-wallet-client-prebuilt": "3.22.*",
     "blockchain.info": "~2.2.2",
     "body-parser": "~1.14.1",
+    "colors": "~1.1.2",
     "commander": "~2.9.0",
     "express": "~4.13.3",
     "json-rpc2": "~1.0.2",
     "q": "~1.4.1",
+    "ramda": "~0.23.0",
+    "registry-url": "~3.1.0",
     "request-promise": "^2.0.1",
+    "semver": "~5.3.0",
+    "unicode-length": "~2.0.0",
     "winston": "^2.2.0"
   },
   "devDependencies": {
@@ -44,6 +51,7 @@
     "node-env-file": "~0.1.8",
     "nodemon": "~1.8.1",
     "sinon": "^1.17.3",
-    "sinon-chai": "^2.8.0"
+    "sinon-chai": "^2.8.0",
+    "standard": "~8.6.0"
   }
 }
